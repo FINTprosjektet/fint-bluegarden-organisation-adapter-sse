@@ -20,7 +20,6 @@ public class OrganisasjonselementMapper {
         List<FintResource<Organisasjonselement>> organisasjonselementList = new ArrayList<>();
 
         orgListItemObjects.forEach(org -> {
-            FintResource<Organisasjonselement> fintResource = new FintResource<>();
             Organisasjonselement organisasjonselement = new Organisasjonselement();
 
             organisasjonselement.setNavn(org.getOrgNavn());
@@ -35,22 +34,12 @@ public class OrganisasjonselementMapper {
             organisasjonsKode.setIdentifikatorverdi(org.getOrgUnitId());
             organisasjonselement.setOrganisasjonsKode(organisasjonsKode);
 
-            fintResource.with(organisasjonselement)
-                    .addRelasjon(
-                            new Relation.Builder()
-                                    .with(Organisasjonselement.Relasjonsnavn.ORGANISASJON)
-                                    .forType(Organisasjonselement.class)
-                                    .path("/administrasjon/organisasjon/organisasjonselement")
-                                    .field("orgid")
-                                    .value(org.getParentGroupId())
-                                    .build()
-                    );
-
+            List<Relation> relations = new ArrayList<>();
             employeeList.forEach(ansattObject -> {
                 ansattObject.getArbeidsforhold().forEach(arbeidsforholdType -> {
                     if (arbeidsforholdType.getOrgUnitId().equals(org.getOrgUnitId())) {
 
-                        fintResource.addRelasjon(new Relation.Builder()
+                        relations.add(new Relation.Builder()
                                 .with(Organisasjonselement.Relasjonsnavn.ARBEIDSFORHOLD)
                                 .forType(Arbeidsforhold.class)
                                 .path("/administrasjon/personal/arbeidsforhold")
@@ -61,6 +50,17 @@ public class OrganisasjonselementMapper {
                     }
                 });
             });
+            relations.add(
+                    new Relation.Builder()
+                            .with(Organisasjonselement.Relasjonsnavn.ORGANISASJON)
+                            .forType(Organisasjonselement.class)
+                            .path("/administrasjon/organisasjon/organisasjonselement")
+                            .field("organisasjonsid")
+                            .value(org.getParentGroupId())
+                            .build()
+            );
+            FintResource<Organisasjonselement> fintResource = FintResource.with(organisasjonselement);
+            fintResource.setRelasjoner(relations);
 
             organisasjonselementList.add(fintResource);
         });
