@@ -56,7 +56,7 @@ public class OrganisasjonselementMapper {
                             .forType(Organisasjonselement.class)
                             .path("/administrasjon/organisasjon/organisasjonselement")
                             .field("organisasjonsid")
-                            .value(org.getParentGroupId())
+                            .value(org.getParentGroupId().replace("/", ":"))
                             .build()
             );
             FintResource<Organisasjonselement> fintResource = FintResource.with(organisasjonselement);
