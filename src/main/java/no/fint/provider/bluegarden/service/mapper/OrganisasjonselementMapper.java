@@ -26,7 +26,7 @@ public class OrganisasjonselementMapper {
             organisasjonselement.setAktiv(org.isErAktiv());
 
             Identifikator organisasjonsId = new Identifikator();
-            organisasjonsId.setIdentifikatorverdi(org.getGroupId());
+            organisasjonsId.setIdentifikatorverdi(org.getGroupId().replace("/", ":"));
             organisasjonselement.setOrganisasjonsId(organisasjonsId);
 
 
