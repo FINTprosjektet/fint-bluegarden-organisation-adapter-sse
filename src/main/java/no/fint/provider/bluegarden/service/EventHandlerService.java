@@ -36,12 +36,9 @@ public class EventHandlerService {
 
             if (action == Action.HEALTH) {
                 responseEvent = onHealthCheck(event);
-            }
-
-            if (action == Action.GET_ALL_ORGANISASJONSELEMENT) {
+            } else if (action == Action.GET_ALL_ORGANISASJONSELEMENT) {
                 responseEvent = onGetAllOrganisasjonselement(event);
             }
-
 
             if (responseEvent != null) {
                 responseEvent.setStatus(Status.PROVIDER_RESPONSE);
@@ -72,10 +69,6 @@ public class EventHandlerService {
     }
 
     private boolean healthCheck() {
-
-        if (blueGardenService.getOrganisationStructure().size() > 0) {
-            return true;
-        }
-        return false;
+        return blueGardenService.getOrganisationStructure().size() > 0;
     }
 }
