@@ -76,31 +76,34 @@ public class BlueGardenService {
         } catch (Exception ignore) {
             getBlueGardenData();
         }
-
     }
 
     @Scheduled(initialDelay = 600000L, fixedRate = 600000L)
-    public void getBlueGardenData() {
+    public void getBlueGardenDataScheduled() {
         if (blueGardenProps.isSchedulingEnabled()) {
-            Long startTimestamp = System.currentTimeMillis();
-            Long endTimestamp;
-            List<AnsattObject> employeeList = new ArrayList<>();
-            List<OrgListItemObject> orgListItemObjects = getOrganisationStructure();
-
-            orgListItemObjects.forEach(org -> {
-                if (org.isErAktiv()) {
-                    log.info("Getting employees for -- {}", org.getOrgNavn());
-                    employeeList.addAll(getEmployeesByOrgUnit(org.getOrgUnitId()));
-                } else {
-                    log.info("OrgUnit is not active", org.getOrgNavn());
-                }
-            });
-
-            endTimestamp = System.currentTimeMillis();
-            organisasjonselementList = organisasjonselementMapper.convertToResource(orgListItemObjects, employeeList);
-
-            log.info("Getting employees took {} seconds", (endTimestamp - startTimestamp) / 1000);
+            getBlueGardenData();
         }
+    }
+
+    public void getBlueGardenData() {
+        Long startTimestamp = System.currentTimeMillis();
+        Long endTimestamp;
+        List<AnsattObject> employeeList = new ArrayList<>();
+        List<OrgListItemObject> orgListItemObjects = getOrganisationStructure();
+
+        orgListItemObjects.forEach(org -> {
+            if (org.isErAktiv()) {
+                log.info("Getting employees for -- {}", org.getOrgNavn());
+                employeeList.addAll(getEmployeesByOrgUnit(org.getOrgUnitId()));
+            } else {
+                log.info("OrgUnit is not active", org.getOrgNavn());
+            }
+        });
+
+        endTimestamp = System.currentTimeMillis();
+        organisasjonselementList = organisasjonselementMapper.convertToResource(orgListItemObjects, employeeList);
+
+        log.info("Getting employees took {} seconds", (endTimestamp - startTimestamp) / 1000);
     }
 
     public List<FintResource<Organisasjonselement>> getOrganisasjonselementList() {
