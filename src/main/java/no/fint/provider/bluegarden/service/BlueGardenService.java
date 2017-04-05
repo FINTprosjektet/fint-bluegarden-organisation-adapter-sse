@@ -6,7 +6,7 @@ import no.fint.model.relation.FintResource;
 import no.fint.provider.bluegarden.service.mapper.OrganisasjonselementMapper;
 import no.fint.provider.bluegarden.soap.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -20,36 +20,8 @@ import java.util.UUID;
 @Service
 public class BlueGardenService {
 
-    @Value("${bluegarden.employee-endpoint}")
-    private String employeeEnpoint;
-
-    @Value("${bluegarden.org-endpoint}")
-    private String orgEnpoint;
-
-    @Value("${bluegarden.username}")
-    private String username;
-
-    @Value("${bluegarden.password}")
-    private String password;
-
-    @Value("${bluegarden.employer}")
-    private String employer;
-
-    @Value("${bluegarden.orgunitid}")
-    private String orgUnitId;
-
-    @Value("${bluegarden.source-company}")
-    private String sourceCompany;
-
-    @Value("${bluegarden.source-system}")
-    private String sourceSystem;
-
-    @Value("${bluegarden.source-user}")
-    private String sourceUser;
-
-    @Value("${bluegarden.source-employer}")
-    private String sourceEmployer;
-
+    @Autowired
+    private BlueGardenProps blueGardenProps;
 
     @Autowired
     private OrganisasjonselementMapper organisasjonselementMapper;
@@ -76,28 +48,28 @@ public class BlueGardenService {
         employeeRequestContext = ((BindingProvider) employeePort).getRequestContext();
         orgRequestContext = ((BindingProvider) orgPort).getRequestContext();
 
-        employeeRequestContext.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, employeeEnpoint);
-        employeeRequestContext.put(BindingProvider.USERNAME_PROPERTY, username);
-        employeeRequestContext.put(BindingProvider.PASSWORD_PROPERTY, password);
+        employeeRequestContext.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, blueGardenProps.getEmployeeEnpoint());
+        employeeRequestContext.put(BindingProvider.USERNAME_PROPERTY, blueGardenProps.getUsername());
+        employeeRequestContext.put(BindingProvider.PASSWORD_PROPERTY, blueGardenProps.getPassword());
 
-        orgRequestContext.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, orgEnpoint);
-        orgRequestContext.put(BindingProvider.USERNAME_PROPERTY, username);
-        orgRequestContext.put(BindingProvider.PASSWORD_PROPERTY, password);
+        orgRequestContext.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, blueGardenProps.getOrgEnpoint());
+        orgRequestContext.put(BindingProvider.USERNAME_PROPERTY, blueGardenProps.getUsername());
+        orgRequestContext.put(BindingProvider.PASSWORD_PROPERTY, blueGardenProps.getPassword());
 
         header = new BSBHeaderType();
-        header.setSourceCompany(sourceCompany);
-        header.setSourceSystem(sourceSystem);
-        header.setSourceUser(sourceUser); // innlogget bruker, sporing av klienten som sender employeRequest
+        header.setSourceCompany(blueGardenProps.getSourceCompany());
+        header.setSourceSystem(blueGardenProps.getSourceSystem());
+        header.setSourceUser(blueGardenProps.getSourceUser()); // innlogget bruker, sporing av klienten som sender employeRequest
         // employer("*")
-        header.getSourceEmployer().add(sourceEmployer);
+        header.getSourceEmployer().add(blueGardenProps.getSourceEmployer());
         header.setUserArea(new UserAreaType());
 
         employeRequest = new GetAnsattListRequestMessageType();
-        employeRequest.setArbeidsgiver(employer);
+        employeRequest.setArbeidsgiver(blueGardenProps.getEmployer());
 
         orgRequest = new GetOrgListRequest();
-        orgRequest.setArbeidsgiver(employer);
-        orgRequest.setOrgUnitId(orgUnitId);
+        orgRequest.setArbeidsgiver(blueGardenProps.getEmployer());
+        orgRequest.setOrgUnitId(blueGardenProps.getOrgUnitId());
 
         try {
             getBlueGardenData();
@@ -107,29 +79,28 @@ public class BlueGardenService {
 
     }
 
+    @Scheduled(initialDelay = 600000L, fixedRate = 600000L)
     public void getBlueGardenData() {
+        if (blueGardenProps.isSchedulingEnabled()) {
+            Long startTimestamp = System.currentTimeMillis();
+            Long endTimestamp;
+            List<AnsattObject> employeeList = new ArrayList<>();
+            List<OrgListItemObject> orgListItemObjects = getOrganisationStructure();
 
-        Long startTimestamp = System.currentTimeMillis();
-        Long endTimestamp;
-        List<AnsattObject> employeeList = new ArrayList<>();
-        List<OrgListItemObject> orgListItemObjects = getOrganisationStructure();
+            orgListItemObjects.forEach(org -> {
+                if (org.isErAktiv()) {
+                    log.info("Getting employees for -- {}", org.getOrgNavn());
+                    employeeList.addAll(getEmployeesByOrgUnit(org.getOrgUnitId()));
+                } else {
+                    log.info("OrgUnit is not active", org.getOrgNavn());
+                }
+            });
 
-        orgListItemObjects.forEach(org -> {
-            if (org.isErAktiv()) {
-                log.info("Getting employees for -- {}", org.getOrgNavn());
-                employeeList.addAll(getEmployeesByOrgUnit(org.getOrgUnitId()));
-            } else {
-                log.info("OrgUnit is not active", org.getOrgNavn());
-            }
-        });
+            endTimestamp = System.currentTimeMillis();
+            organisasjonselementList = organisasjonselementMapper.convertToResource(orgListItemObjects, employeeList);
 
-        endTimestamp = System.currentTimeMillis();
-
-
-        organisasjonselementList = organisasjonselementMapper.organisasjonselementMapper(orgListItemObjects, employeeList);
-
-        log.info("Getting employees took {} seconds", (endTimestamp - startTimestamp) / 1000);
-
+            log.info("Getting employees took {} seconds", (endTimestamp - startTimestamp) / 1000);
+        }
     }
 
     public List<FintResource<Organisasjonselement>> getOrganisasjonselementList() {

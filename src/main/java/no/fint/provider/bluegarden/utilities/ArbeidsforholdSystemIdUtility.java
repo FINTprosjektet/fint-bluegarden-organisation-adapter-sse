@@ -1,6 +1,6 @@
 package no.fint.provider.bluegarden.utilities;
 
-public enum ArbeidsforholSystemIdUtility {
+public enum ArbeidsforholdSystemIdUtility {
 
     ;
 

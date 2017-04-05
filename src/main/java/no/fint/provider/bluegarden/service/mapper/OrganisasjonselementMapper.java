@@ -7,16 +7,16 @@ import no.fint.model.relation.FintResource;
 import no.fint.model.relation.Relation;
 import no.fint.provider.bluegarden.soap.AnsattObject;
 import no.fint.provider.bluegarden.soap.OrgListItemObject;
-import no.fint.provider.bluegarden.utilities.ArbeidsforholSystemIdUtility;
-import org.springframework.stereotype.Service;
+import no.fint.provider.bluegarden.utilities.ArbeidsforholdSystemIdUtility;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Service
+@Component
 public class OrganisasjonselementMapper {
 
-    public List<FintResource<Organisasjonselement>> organisasjonselementMapper(List<OrgListItemObject> orgListItemObjects, List<AnsattObject> employeeList) {
+    public List<FintResource<Organisasjonselement>> convertToResource(List<OrgListItemObject> orgListItemObjects, List<AnsattObject> employeeList) {
         List<FintResource<Organisasjonselement>> organisasjonselementList = new ArrayList<>();
 
         orgListItemObjects.forEach(org -> {
@@ -44,7 +44,7 @@ public class OrganisasjonselementMapper {
                                 .forType(Arbeidsforhold.class)
                                 .path("/administrasjon/personal/arbeidsforhold")
                                 .field("systemid")
-                                .value(ArbeidsforholSystemIdUtility.getSystemId(ansattObject.getAnsattNummer(), arbeidsforholdType.getArbeidsforholdnummer()))
+                                .value(ArbeidsforholdSystemIdUtility.getSystemId(ansattObject.getAnsattNummer(), arbeidsforholdType.getArbeidsforholdnummer()))
                                 .build()
                         );
                     }
