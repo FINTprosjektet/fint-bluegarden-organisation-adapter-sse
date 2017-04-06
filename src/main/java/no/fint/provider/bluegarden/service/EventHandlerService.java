@@ -27,7 +27,6 @@ public class EventHandlerService {
     @Autowired
     private BlueGardenService blueGardenService;
 
-
     public void handleEvent(String event) {
         Event eventObj = EventUtil.toEvent(event);
         if (eventObj != null && eventStatusService.verifyEvent(eventObj).getStatus() == Status.PROVIDER_ACCEPTED) {
