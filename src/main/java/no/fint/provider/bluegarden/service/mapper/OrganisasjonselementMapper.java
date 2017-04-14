@@ -42,7 +42,6 @@ public class OrganisasjonselementMapper {
                         relations.add(new Relation.Builder()
                                 .with(Organisasjonselement.Relasjonsnavn.ARBEIDSFORHOLD)
                                 .forType(Arbeidsforhold.class)
-                                .path("/administrasjon/personal/arbeidsforhold")
                                 .field("systemid")
                                 .value(ArbeidsforholdSystemIdUtility.getSystemId(ansattObject.getAnsattNummer(), arbeidsforholdType.getArbeidsforholdnummer()))
                                 .build()
@@ -52,16 +51,14 @@ public class OrganisasjonselementMapper {
             });
             relations.add(
                     new Relation.Builder()
-                            .with(Organisasjonselement.Relasjonsnavn.ORGANISASJON)
+                            .with(Organisasjonselement.Relasjonsnavn.OVERORDNET)
                             .forType(Organisasjonselement.class)
-                            .path("/administrasjon/organisasjon/organisasjonselement")
                             .field("organisasjonsid")
                             .value(org.getParentGroupId().replace("/", ":"))
                             .build()
             );
-            FintResource<Organisasjonselement> fintResource = FintResource.with(organisasjonselement);
-            fintResource.setRelasjoner(relations);
 
+            FintResource<Organisasjonselement> fintResource = FintResource.with(organisasjonselement).addRelasjoner(relations);
             organisasjonselementList.add(fintResource);
         });
 
