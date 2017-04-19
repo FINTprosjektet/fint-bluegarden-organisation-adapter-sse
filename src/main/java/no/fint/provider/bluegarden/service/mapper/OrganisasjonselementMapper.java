@@ -35,7 +35,7 @@ public class OrganisasjonselementMapper {
             organisasjonselement.setOrganisasjonsKode(organisasjonsKode);
 
             List<Relation> relations = new ArrayList<>();
-            employeeList.forEach(ansattObject -> {
+            /*employeeList.forEach(ansattObject -> {
                 ansattObject.getArbeidsforhold().forEach(arbeidsforholdType -> {
                     if (arbeidsforholdType.getOrgUnitId().equals(org.getOrgUnitId())) {
 
@@ -48,7 +48,7 @@ public class OrganisasjonselementMapper {
                         );
                     }
                 });
-            });
+            });*/
             relations.add(
                     new Relation.Builder()
                             .with(Organisasjonselement.Relasjonsnavn.OVERORDNET)

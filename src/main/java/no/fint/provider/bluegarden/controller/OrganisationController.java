@@ -23,7 +23,7 @@ public class OrganisationController {
     private BlueGardenService blueGardenService;
 
     @RequestMapping(value = "/organisation", method = RequestMethod.GET)
-    public List<FintResource<Organisasjonselement>> getOrganisationList() {
+    public List<FintResource<Organisasjonselement>> getAllOrganisasjonselement() {
         return blueGardenService.getOrganisasjonselementList();
     }
 
