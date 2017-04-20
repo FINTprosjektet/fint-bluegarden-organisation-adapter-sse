@@ -7,6 +7,9 @@ import no.fint.model.relation.FintResource
 import no.fint.provider.bluegarden.service.BlueGardenService
 import org.springframework.test.web.servlet.MockMvc
 
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.Matchers.hasSize
+
 class OrganisationControllerSpec extends MockMvcSpecification {
     private OrganisationController controller
     private BlueGardenService blueGardenService
@@ -25,5 +28,21 @@ class OrganisationControllerSpec extends MockMvcSpecification {
         then:
         1 * blueGardenService.getOrganisasjonselementList() >> [FintResource.with(new Organisasjonselement(organisasjonsId: new Identifikator(identifikatorverdi: '123')))]
         response.andExpect(status().isOk())
+                .andExpect(jsonPath('$', hasSize(1)))
+                .andExpect(jsonPath('$[0].resource.organisasjonsId.identifikatorverdi').value(equalTo('123')))
+    }
+
+    def "Get organisasjonselement with organisasjonsId"() {
+        when:
+        def response = mockMvc.perform(get('/organisation').param('organisasjonsId', '123'))
+
+        then:
+        1 * blueGardenService.getOrganisasjonselementList() >> [
+                FintResource.with(new Organisasjonselement(organisasjonsId: new Identifikator(identifikatorverdi: '123'))),
+                FintResource.with(new Organisasjonselement(organisasjonsId: new Identifikator(identifikatorverdi: '234')))
+        ]
+        response.andExpect(status().isOk())
+                .andExpect(jsonPath('$', hasSize(1)))
+                .andExpect(jsonPath('$[0].resource.organisasjonsId.identifikatorverdi').value(equalTo('123')))
     }
 }
